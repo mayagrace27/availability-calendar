@@ -155,9 +155,7 @@ function SearchWidget({
             selected={checkIn}
             onSelect={(d) => {
               setCheckIn(d);
-              setCheckOut((prev) =>
-                startOfDay(prev) <= startOfDay(d) ? addDays(d, 1) : prev,
-              );
+              setCheckOut(addDays(d, 1));
               setCheckInOpen(false);
               setCheckOutOpen(true);
             }}
@@ -258,13 +256,13 @@ function Breadcrumbs() {
   );
 }
 
-/** Check-in / check-out for trip summary + nearby — always Apr 11–12, 2026; independent of the booking form. */
+/** Trip summary + nearby — fixed snapshot dates (check-in Apr 11 → next-day check-out); independent of the booking form. */
 const staticTripCheckIn = startOfDay(new Date(2026, 3, 11));
-const staticTripCheckOut = startOfDay(new Date(2026, 3, 12));
+const staticTripCheckOut = addDays(staticTripCheckIn, 1);
 
 export function NoHotelsPage() {
-  const [checkIn, setCheckIn] = useState(() => new Date(2026, 3, 11));
-  const [checkOut, setCheckOut] = useState(() => new Date(2026, 3, 12));
+  const [checkIn, setCheckIn] = useState(() => staticTripCheckIn);
+  const [checkOut, setCheckOut] = useState(() => addDays(staticTripCheckIn, 1));
   const tripSummaryCheckIn = useRef(staticTripCheckIn);
   const tripSummaryCheckOut = useRef(staticTripCheckOut);
 
