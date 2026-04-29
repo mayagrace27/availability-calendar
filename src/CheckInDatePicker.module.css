@@ -1,0 +1,485 @@
+/* Figma `15:8333` / day grid `140:365` — check-in datepicker */
+.root {
+  /* Figma `140:365` grid chrome — override page `--color-border` (e.g. #dfdfe8) */
+  --color-border: #e7e7e7;
+  position: absolute;
+  left: 0;
+  top: calc(100% + 4px);
+  z-index: 50;
+  width: 280px;
+  background: #fff;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: visible;
+}
+
+.availabilityFooter {
+  width: 100%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: #fff;
+  border-top: 1px solid var(--color-border, #e7e7e7);
+}
+
+.availabilityFooterInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px 4px;
+  box-sizing: border-box;
+}
+
+.availabilityNote {
+  margin: 0;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 14px;
+  color: #606068;
+  text-align: center;
+  max-width: 100%;
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 35px;
+  box-sizing: border-box;
+  padding: 0 35px;
+  border-bottom: 1px solid var(--color-border, #e7e7e7);
+  background: #fff;
+}
+
+/* Header — Figma `140:807` (check-in / check-out) */
+.title {
+  margin: 0;
+  padding: 4px 8px;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 22px;
+  color: #202027;
+  text-align: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.closeBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 2;
+  width: 35px;
+  height: 35px;
+  box-sizing: border-box;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.closeBtn:hover {
+  opacity: 0.88;
+}
+
+.closeBtn:focus-visible {
+  outline: 2px solid #efa236;
+  outline-offset: 2px;
+}
+
+.closeIcon {
+  width: 16px;
+  height: 16px;
+  display: block;
+  flex-shrink: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+/* Figma `120:4524` — 8px horizontal inset for arrows + month */
+.monthNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 0 8px;
+  background: #fff;
+  width: 100%;
+}
+
+/* Placeholder so month label stays centered when prev control is hidden (earliest month). */
+.monthNavSpacer {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+/* Figma `120:4524` — 20×20 dark circle, white `arrow_forward_ios` chevron */
+.navBtn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 28px;
+  background: #212529;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: #2c3136;
+}
+
+.navBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.navIcon {
+  width: 10.706px;
+  height: 10.706px;
+  display: block;
+}
+
+.monthLabel {
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #202027;
+}
+
+.weekRow {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.weekdayCell {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 4px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #202027;
+}
+
+.grid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #e7e7e7;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.dayRow {
+  display: flex;
+  width: 100%;
+  overflow: visible;
+}
+
+.cell {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-right: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.cell:nth-child(7n) {
+  border-right: none;
+}
+
+.dayRow:last-child .cell {
+  border-bottom: none;
+}
+
+/* Non-interactive day cells: `div[role=button][aria-disabled]` (not <button disabled>) for reliable pointer hover in WebKit. */
+.cell:disabled,
+.cell[aria-disabled="true"] {
+  opacity: 1;
+}
+
+/* Figma `140:384` — calendar past; `140:441` — check-out days before selected check-in (e.g. Apr 1–19 when check-in Apr 20). Muted, no strikethrough. */
+.cellPast {
+  background: #f7f7f7;
+  color: rgba(32, 32, 39, 0.5);
+  text-decoration: none;
+  cursor: not-allowed;
+}
+
+/* Figma `140:365` / cells `140:412`–`140:413` — #74747c + strike; selections allowed for inventory demos */
+.cellUnavailable {
+  background: #fff;
+  color: #74747c;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cellUnavailable::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 1px;
+  z-index: 1;
+  background: #74747c;
+  pointer-events: none;
+}
+
+.cellUnavailable:hover {
+  background: #fff;
+  color: #74747c;
+}
+
+.cellUnavailable:hover::after {
+  background: #74747c;
+}
+
+/* Figma `167:3146` / `167:3390` (#25) — #f3ab1f + white strike while hovered/selected; still clickable */
+.cellUnavailableSoldAccent {
+  background: #f3ab1f;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cellUnavailableSoldAccent:hover {
+  background: #f3ab1f;
+  color: #fff;
+}
+
+.cellUnavailableSoldAccent::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 1px;
+  z-index: 1;
+  background: #fff;
+  pointer-events: none;
+}
+
+.cellAvailable {
+  background: #fff;
+  color: #212529;
+}
+
+/* One accent: selection, reference “today”, hover, and check-in date on check-out picker */
+.cellSelected,
+.cellToday,
+.cellCheckInNight,
+.cellSelected:hover,
+.cellToday:hover,
+.cellCheckInNight:hover,
+.cellAvailable:hover {
+  background: #f3ab1f;
+  color: #fff;
+}
+
+/* Check-out picker: nights between check-in and hovered checkout (stay preview) — Figma `140:919` */
+.cellStayRange {
+  background: #fef7e1;
+  color: #212529;
+}
+
+.cellStayRange:hover {
+  background: #f3ab1f;
+  color: #fff;
+}
+
+/* Inventory inside stay band (#24) — Figma `167:3390`: pale bg + gray strike persists on hover */
+.cellStayRangeUnavailable {
+  background: #fef7e1;
+  color: #606068;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cellStayRangeUnavailable::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 1px;
+  z-index: 1;
+  background: #74747c;
+  pointer-events: none;
+}
+
+.cellStayRangeUnavailable:hover {
+  background: #fef7e1;
+  color: #606068;
+}
+
+.cellStayRangeUnavailable:hover::after {
+  background: #74747c;
+}
+
+/* Figma `140:923` — “Check-In” hover on check-in night (check-out calendar) */
+.checkInTooltipHost {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  display: flex;
+}
+
+.checkInTooltipHost .cell {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.checkInTooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 175px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    visibility 0.12s ease;
+}
+
+@media (hover: hover) {
+  .checkInTooltipHost:hover .checkInTooltip {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.checkInTooltipBubble {
+  background: #424242;
+  padding: 4px 8px;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  max-width: 175px;
+}
+
+.checkInTooltipText {
+  display: block;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 12px;
+  line-height: 14px;
+  font-weight: 400;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.checkInTooltipArrow {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #424242;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+
+/* Figma `14:6829` loading grid — matches Tailwind `animate-pulse`:
+   https://tailwindcss.com/docs/animation#adding-a-pulse-animation */
+@keyframes pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeletonPulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonPulse {
+    animation: none;
+  }
+}
+
+.skeletonGrid {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid #e7e7e7;
+  box-sizing: border-box;
+}
+
+.skeletonDayRow {
+  display: flex;
+  width: 100%;
+}
+
+.skeletonDayCell {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-right: 1px solid #e7e7e7;
+  border-bottom: 1px solid #e7e7e7;
+  opacity: 0.6;
+}
+
+.skeletonDayCell:nth-child(7n) {
+  border-right: none;
+}
+
+.skeletonDayRow:last-child .skeletonDayCell {
+  border-bottom: none;
+}
+
+.skeletonBar {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  background: #d9d9d9;
+  flex-shrink: 0;
+}

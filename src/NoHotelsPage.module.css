@@ -1,0 +1,1279 @@
+/* Design tokens — mobile: Figma 67:710 | desktop: Figma 9208:22292 */
+.page {
+  --color-text: #202027;
+  --color-text-secondary: #606068;
+  --color-surface-900: #202027;
+  --color-menu-divider: #37373d;
+  --color-border: #dfdfe8;
+  --color-button: #f3ab1f;
+  --color-white: #fff;
+  --color-breadcrumb-muted: #636368;
+  --color-breadcrumb: #212529;
+  --bp-desktop: 960px;
+  --content-max: 1110px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  width: 100%;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  color: var(--color-text);
+}
+
+.main {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: 0 var(--space-16);
+  box-sizing: border-box;
+}
+
+@media (max-width: 959px) {
+  .main {
+    max-width: none;
+    padding: 0;
+  }
+}
+
+/* —— Mobile header —— */
+.headerMobile {
+  background: var(--color-surface-900);
+  color: var(--color-white);
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.brand {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-8) 0 var(--space-8) var(--space-16);
+  display: flex;
+  align-items: center;
+}
+
+/* Logo frame 180×34 per Figma (69:1031) */
+.logo {
+  width: 180px;
+}
+
+.logoImageRow {
+  position: relative;
+  width: 180px;
+  height: 14px;
+  overflow: hidden;
+}
+
+.logoLockupMobile {
+  display: block;
+  width: 180px;
+  height: 14px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.tagline {
+  margin: 10px 0 0;
+  width: 180px;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.7px;
+  font-weight: 400;
+  color: var(--color-white);
+}
+
+.menuBtn {
+  align-self: stretch;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--color-menu-divider);
+  color: var(--color-white);
+  padding: var(--space-12) var(--space-16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menuIcon {
+  width: 19px;
+  height: 12px;
+  display: block;
+  color: var(--color-white);
+  flex-shrink: 0;
+}
+
+/* —— Phone —— */
+.phoneBar {
+  background: var(--color-white);
+  text-align: center;
+  padding: var(--space-16) var(--space-12);
+}
+
+.phone {
+  font-family: "Hind Madurai", sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 28px;
+  color: var(--color-text);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+/* —— Hero 220px —— */
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: #0a0a0b;
+}
+
+.carouselImg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+.carouselNav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.navSlot {
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.navFab {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.navArrow {
+  width: 27px;
+  height: 27px;
+  display: block;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* Dots: Figma top 196px, gap 12px, 8×8 rounded */
+.dots {
+  position: absolute;
+  left: calc(50% + 0.5px);
+  transform: translateX(-50%);
+  top: 196px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+}
+
+.dotActive {
+  background: var(--color-white);
+}
+
+/* —— Trip summary (gap 4px, padding 16) —— */
+.tripBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: var(--space-16);
+  width: 100%;
+  text-align: left;
+}
+
+.hotelName {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 32px;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.summary {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-text);
+}
+
+.summary strong {
+  font-weight: 700;
+}
+
+.summaryLine {
+  margin: 0 0 var(--space-4);
+}
+
+.summaryLine:last-child {
+  margin-bottom: 0;
+}
+
+/* Hairline only — Figma rule images can decode with wrong intrinsic height and look like gray slabs */
+.rule {
+  border: none;
+  height: 1px;
+  margin: 0;
+  flex-shrink: 0;
+  background: var(--color-border);
+  width: 100%;
+}
+
+@media (max-width: 959px) {
+  /* Match `.tripBlock`, `.nda`, `.nearby` horizontal inset — `.main` has no padding on mobile */
+  .rule {
+    width: auto;
+    margin-left: var(--space-16);
+    margin-right: var(--space-16);
+  }
+}
+
+/* —— NDA: gap 24, px 16 py 24, items-start —— */
+.nda {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-24);
+  padding: var(--space-24) var(--space-16);
+  width: 100%;
+}
+
+.message {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 24px;
+  color: var(--color-text);
+  margin: 0;
+  text-align: left;
+}
+
+/* Booking form — Figma `73:879` (single horizontal row: 5 fields + CTA) */
+.bookingForm {
+  display: grid;
+  width: 100%;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  box-sizing: border-box;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.fieldCheckIn {
+  grid-column: 1 / span 3;
+  grid-row: 1;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fieldCheckOut {
+  grid-column: 4 / span 3;
+  grid-row: 1;
+  border-bottom: 1px solid var(--color-border);
+}
+
+@media (max-width: 959px) {
+  /* Inner shells draw vertical seams; cell `border-right` + inner borders stack into double lines */
+  .fieldCheckIn,
+  .fieldRooms,
+  .fieldAdults {
+    border-right: none;
+  }
+
+  .fieldCheckOut .fieldInputShell {
+    border-right: none;
+  }
+
+  .fieldKids .selectInner {
+    border-left: none;
+    border-right: none;
+  }
+}
+
+.fieldRooms {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fieldAdults {
+  grid-column: 3 / span 2;
+  grid-row: 2;
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.fieldKids {
+  grid-column: 5 / span 2;
+  grid-row: 2;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ctaWrap {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: stretch;
+}
+
+.bookingField {
+  min-width: 0;
+  background: var(--color-white);
+  box-sizing: border-box;
+}
+
+.checkInAnchor {
+  position: relative;
+}
+
+.fieldInputShell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 70px;
+  box-sizing: border-box;
+}
+
+button.fieldInputShell {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+/* Check-in inner — border all sides per component */
+.fieldCheckIn .fieldInputShell {
+  margin: -1px;
+  padding: 13px 13px 13px 17px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+}
+
+/* Check-out inner — top + bottom + right only in file */
+.fieldCheckOut .fieldInputShell {
+  margin: -1px -1px -1px 0;
+  padding: 13px 12px 13px 16px;
+  border: solid var(--color-border);
+  border-width: 1px 1px 1px 0;
+  background: var(--color-white);
+}
+
+.fieldSelect {
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  display: block;
+  width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fieldSelect:focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.selectInner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  justify-content: center;
+  min-height: 70px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.fieldRooms .selectInner {
+  padding: 9px 13px 9px 17px;
+  border: 1px solid var(--color-border);
+  margin: -1px;
+  background: var(--color-white);
+}
+
+.fieldAdults .selectInner {
+  padding: 9px 12px 9px 16px;
+  border: solid var(--color-border);
+  border-width: 1px 1px 1px 0;
+  margin: -1px -1px -1px 0;
+  background: var(--color-white);
+}
+
+.fieldKids .selectInner {
+  padding: 9px 13px 9px 17px;
+  border: 1px solid var(--color-border);
+  margin: -1px;
+  background: var(--color-white);
+}
+
+.fieldCaption {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.dateValueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  width: 100%;
+}
+
+.dateValue {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--color-text);
+  text-align: left;
+}
+
+/* Inline SVG — rasters stretch oddly in flex rows; fixed 14×14 box + currentColor */
+.calendarIcon {
+  display: block;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--color-text-secondary);
+  overflow: visible;
+}
+
+.selectChevron {
+  display: block;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--color-text-secondary);
+  overflow: visible;
+}
+
+.selectValueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  width: 100%;
+}
+
+.selectValue {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: var(--color-text);
+}
+
+.cta {
+  flex: 1 1 auto;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  background: var(--color-button);
+  color: var(--color-white);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 16px 24px;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cta:hover {
+  filter: brightness(1.02);
+}
+
+.cta:active {
+  filter: brightness(0.98);
+}
+
+/* —— Desktop header — Figma `88:935` / menu `69:1111` (hidden below 960px) —— */
+.headerDesktop {
+  display: none;
+  background: var(--color-surface-900);
+  color: var(--color-white);
+  width: 100%;
+  border-bottom: 1px solid var(--color-border);
+  box-sizing: border-box;
+}
+
+.headerDesktopInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.headerDesktopBrand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  flex: 1 0 0;
+  min-width: 0;
+  padding: 12px 0 12px 16px;
+  box-sizing: border-box;
+}
+
+.headerDesktopLogoLockup {
+  display: block;
+  width: 201px;
+  max-width: 100%;
+  height: auto;
+  aspect-ratio: 201 / 38;
+  flex-shrink: 0;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.headerDesktopNav {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 16px 16px 0;
+  box-sizing: border-box;
+}
+
+.headerDesktopNav a {
+  color: var(--color-white);
+  text-decoration: none;
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.headerDesktopNav a:hover {
+  text-decoration: underline;
+}
+
+.headerDesktopTools {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.headerToolCell {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 16px 24px;
+  border: none;
+  border-left: 1px solid var(--color-menu-divider);
+  background: transparent;
+  color: var(--color-white);
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+  cursor: pointer;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.headerToolCell:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.headerChevron {
+  display: block;
+  flex-shrink: 0;
+  color: var(--color-white);
+}
+
+.headerCallCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0;
+  margin: 0;
+  padding: 16px 24px;
+  border: none;
+  border-left: 1px solid var(--color-menu-divider);
+  background: transparent;
+  text-decoration: none;
+  color: var(--color-white);
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.headerCallCell:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.headerCallRow {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerCallIcon {
+  display: block;
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: #db9b20;
+}
+
+.headerCallLabel {
+  font-family: "Hind Madurai", sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 21.6px;
+  color: #db9b20;
+  white-space: nowrap;
+}
+
+.headerCallNum {
+  font-family: "Hind Madurai", sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 21.6px;
+  color: var(--color-white);
+  white-space: nowrap;
+}
+
+/* Breadcrumbs — desktop */
+.breadcrumbs {
+  display: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  line-height: 15.6px;
+  margin: 0;
+  padding: var(--space-24) 0;
+  box-sizing: border-box;
+}
+
+.breadcrumbs a {
+  color: var(--color-breadcrumb);
+  text-decoration: underline;
+}
+
+.breadcrumbSep {
+  color: var(--color-breadcrumb-muted);
+  user-select: none;
+}
+
+.breadcrumbCurrent {
+  color: var(--color-breadcrumb);
+}
+
+/* Desktop gallery — 671.99 + 430 + 8 gap ≈ 1110 (Figma 9208:22305) */
+.galleryDesktop {
+  display: none;
+  width: 100%;
+  height: 412px;
+  gap: 8px;
+  margin-bottom: var(--space-24);
+  box-sizing: border-box;
+}
+
+.galleryMain {
+  border-radius: 0;
+  overflow: hidden;
+  background: #f2f2f2;
+  min-height: 0;
+}
+
+.galleryMain img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gallerySide {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  position: relative;
+  min-height: 0;
+}
+
+.galleryThumb {
+  border-radius: 0;
+  overflow: hidden;
+  background: #f2f2f2;
+  min-height: 0;
+}
+
+.galleryThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.showAllPhotos {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: none;
+  border-radius: 4px;
+  color: var(--color-white);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.showAllPhotosIcon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  object-position: center;
+}
+
+.summaryDesktopOnly {
+  display: none;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.summaryPipe {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+  padding: 0 6px;
+}
+
+/* Nearby section */
+.nearby {
+  padding: 40px 0;
+  width: 100%;
+}
+
+@media (max-width: 959px) {
+  .nearby {
+    padding-left: var(--space-16);
+    padding-right: var(--space-16);
+  }
+}
+
+.nearbyIntro {
+  margin-bottom: var(--space-24);
+}
+
+.nearbyTitle {
+  margin: 0 0 var(--space-8);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+}
+
+.nearbySubtitle {
+  margin: 0;
+  font-size: 14px;
+  line-height: 18px;
+  color: var(--color-text);
+}
+
+.nearbyGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+.hotelList {
+  min-width: 0;
+}
+
+.hotelCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  padding: 20px 0;
+  border-bottom: 1px solid #f4f4fe;
+}
+
+@media (min-width: 700px) {
+  .hotelCard {
+    flex-direction: row;
+    gap: var(--space-24);
+    align-items: flex-start;
+  }
+}
+
+.hotelThumb {
+  position: relative;
+  width: 100%;
+  max-width: 190px;
+  flex-shrink: 0;
+  aspect-ratio: 190 / 200;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.hotelThumb > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.distanceBadge {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  z-index: 1;
+  box-sizing: border-box;
+  width: 117px;
+  height: 24px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  padding: 0 6px 0 4px;
+  margin: 0;
+  background: var(--color-white);
+  color: #1f1f1f;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  border-radius: 2px;
+}
+
+.distancePinIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  display: block;
+  object-fit: contain;
+  object-position: center;
+}
+
+.distanceLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hotelBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-24);
+  min-width: 0;
+}
+
+@media (min-width: 700px) {
+  .hotelBody {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+}
+
+.hotelInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.hotelCardTitle {
+  margin: 0 0 var(--space-8);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.starRow {
+  height: 14px;
+  width: 86px;
+  display: block;
+  object-fit: contain;
+  object-position: left;
+  margin-bottom: var(--space-8);
+}
+
+.hotelAddress {
+  margin: 0 0 var(--space-16);
+  font-size: 14px;
+  line-height: 1.2;
+  color: #5f5f5f;
+}
+
+.amenities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: var(--space-8);
+}
+
+.amenity {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: #404040;
+}
+
+.amenityIcon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.moreAmenities {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: inherit;
+  color: #000;
+}
+
+.hotelPricing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-8);
+  width: 100%;
+  max-width: 170px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 699px) {
+  .hotelPricing {
+    align-items: flex-start;
+    max-width: none;
+  }
+}
+
+.priceBlock {
+  text-align: right;
+}
+
+.perNight {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.perNightLabel {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 300;
+  color: var(--color-text-secondary);
+}
+
+.totalStay {
+  margin: 0;
+  font-size: 12px;
+}
+
+.totalStay strong {
+  font-size: 16px;
+  font-weight: 300;
+}
+
+.taxes {
+  margin: 0;
+  font-size: 12px;
+}
+
+.bookNow {
+  width: 100%;
+  margin-top: var(--space-8);
+  padding: 12px;
+  border: none;
+  background: #f3ac1f;
+  color: var(--color-white);
+  font-size: 16px;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.mapPane {
+  width: 100%;
+  min-height: 320px;
+  border-radius: 0;
+  background: #eaeaea;
+  border: 1px solid var(--color-border);
+}
+
+@media (max-width: 959px) {
+  .mapPane {
+    display: none;
+  }
+}
+
+@media (max-width: 699px) {
+  .hotelThumb {
+    max-width: none;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+  }
+}
+
+/* —— Desktop breakpoint —— */
+@media (min-width: 960px) {
+  .headerMobile {
+    display: none;
+  }
+
+  .headerDesktop {
+    display: block;
+  }
+
+  .phoneBar {
+    display: none;
+  }
+
+  .breadcrumbs {
+    display: flex;
+  }
+
+  .carousel {
+    display: none;
+  }
+
+  .galleryDesktop {
+    display: grid;
+    grid-template-columns: minmax(0, 671fr) minmax(0, 430fr);
+    /* Trip block supplies 24px above the hotel name; clear base margin so total gap is 24px */
+    margin-bottom: 0;
+  }
+
+  .summaryMobileOnly {
+    display: none;
+  }
+
+  .summaryDesktopOnly {
+    display: block;
+  }
+
+  .hotelName {
+    font-size: 32px;
+    line-height: 48px;
+  }
+
+  .tripBlock {
+    padding: var(--space-24) 0;
+  }
+
+  .message {
+    font-size: 20px;
+    line-height: normal;
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .nda {
+    align-items: center;
+    gap: 40px;
+    padding: 40px 0;
+  }
+
+  .bookingForm {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    min-height: 70px;
+  }
+
+  .fieldCheckIn,
+  .fieldCheckOut,
+  .fieldRooms,
+  .fieldAdults,
+  .fieldKids {
+    grid-column: auto;
+    grid-row: auto;
+    border-bottom: none;
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .fieldCheckIn {
+    border-right: 1px solid var(--color-border);
+  }
+
+  .fieldCheckOut {
+    border-right: 1px solid var(--color-border);
+  }
+
+  .fieldRooms {
+    border-right: 1px solid var(--color-border);
+  }
+
+  .fieldAdults {
+    border-right: 1px solid var(--color-border);
+  }
+
+  .fieldKids {
+    border-right: 1px solid var(--color-border);
+  }
+
+  /* One outer border from `.bookingForm`; inner frame borders from mobile layout removed */
+  .fieldCheckIn .fieldInputShell,
+  .fieldCheckOut .fieldInputShell {
+    margin: 0;
+    border: none;
+    min-height: 0;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .fieldRooms .selectInner,
+  .fieldAdults .selectInner,
+  .fieldKids .selectInner {
+    margin: 0;
+    border: none;
+    min-height: 0;
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .fieldCheckIn .fieldInputShell {
+    padding: 13px 13px 13px 17px;
+  }
+
+  .fieldCheckOut .fieldInputShell {
+    padding: 13px 12px 13px 16px;
+  }
+
+  .fieldRooms .selectInner {
+    padding: 9px 13px 9px 17px;
+  }
+
+  .fieldAdults .selectInner {
+    padding: 9px 12px 9px 16px;
+  }
+
+  .fieldKids .selectInner {
+    padding: 9px 13px 9px 17px;
+  }
+
+  .ctaWrap {
+    grid-column: auto;
+    grid-row: auto;
+    width: auto;
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+
+  .cta {
+    flex: 0 1 auto;
+    width: auto;
+    min-width: 180px;
+    height: auto;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 24px;
+    box-sizing: border-box;
+  }
+
+  .nearbyGrid {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-32);
+  }
+
+  .hotelList {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .mapPane {
+    flex: 0 0 25%;
+    width: auto;
+    min-width: 0;
+    min-height: 840px;
+    position: sticky;
+    top: 16px;
+  }
+}

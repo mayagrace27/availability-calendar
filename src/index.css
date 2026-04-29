@@ -1,0 +1,25 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: #fff;
+}
+
+body {
+  font-family: "Nunito Sans", system-ui, -apple-system, sans-serif;
+  background: #fff;
+  color: #202027;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
