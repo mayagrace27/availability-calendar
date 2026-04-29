@@ -625,6 +625,11 @@ export function CheckInDatePicker({
   const calendarInteractive =
     availabilityFetchDone && revealedDayCount >= GRID_DAY_COUNT;
 
+  function blockInteractionWhileAvailabilityLoading(e: React.SyntheticEvent): void {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   return (
     <div
       ref={rootRef}
@@ -677,6 +682,8 @@ export function CheckInDatePicker({
 
       <div
         className={`${styles.grid} ${!calendarInteractive ? styles.gridAvailabilityLoading : ""}`}
+        onPointerDownCapture={!calendarInteractive ? blockInteractionWhileAvailabilityLoading : undefined}
+        onClickCapture={!calendarInteractive ? blockInteractionWhileAvailabilityLoading : undefined}
         onPointerOver={calendarInteractive ? handleGridPointerOver : undefined}
         onMouseLeave={
           calendarInteractive
