@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import styles from "./CheckInDatePicker.module.css";
 
 const MONTH_NAMES = [
@@ -36,6 +36,14 @@ function clampViewMonth(year: number, month: number): [number, number] {
 
 export function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function sameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 /** True for calendar months strictly after the month that contains `REFERENCE_TODAY` (e.g. May 2026+ when “today” is April 2026). */
@@ -76,7 +84,7 @@ function isInventoryBlockedCheckInNight(d: Date): boolean {
   return isSimulatedInventoryNightAfterApril(y, m, dom, "checkIn");
 }
 
-/** Departures you cannot select (check-out calendar). Demo Apr 24–25 blocked for checkout here. */
+/** Departures you cannot select (check-out calendar). Demo Apr 24–25, 2026; simulated later months. */
 function isInventoryBlockedCheckOutDay(d: Date): boolean {
   const day = startOfDay(d);
   if (day < startOfDay(REFERENCE_TODAY)) return false;
@@ -113,14 +121,6 @@ function nextCalendarDay(d: Date): Date {
 export function isCheckoutOnlyBeforeBlocked(d: Date): boolean {
   if (isDateUnavailable(d)) return false;
   return isDateUnavailable(nextCalendarDay(d));
-}
-
-function sameDay(a: Date, b: Date): boolean {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
 }
 
 function calendarDayDataKey(d: Date): string {
@@ -196,29 +196,39 @@ function formatAvailabilityNote(rooms: number, adults: number, kids: number): st
   return s;
 }
 
-/** Figma `14:6829` — 5×7 placeholder bars with Tailwind-style pulse */
-const SKELETON_LOAD_MS = 1500;
+/** Simulated latency before staggered reveal begins (prior skeleton duration). */
+const AVAILABILITY_LOAD_MS = 1500;
+
+/** Cells in grid (Figma — 5×7). Each slot resolves sequentially after availability fetch. */
+const GRID_DAY_COUNT = 35;
+
+/** Delay between successive day cells snapping to resolved availability UX. */
+const STAGGER_DAY_MS = 52;
 
 function monthCacheKey(year: number, month: number): string {
   return `${year}-${month}`;
 }
 
-/** Shared across all picker instances — months already “loaded” in check-in skip skeleton in check-out. */
+/** Shared across picker instances — months that have finished the availability loading wait. */
 const loadedCalendarMonths = new Set<string>();
 
-function SkeletonDateGrid() {
+/** Figma `387:4274` — Button Spinner (14×14, `colors/surface/button-on` arc) */
+function AvailabilityLoadingSpinnerIcon() {
   return (
-    <div className={styles.skeletonGrid} aria-hidden>
-      {Array.from({ length: 5 }, (_, ri) => (
-        <div key={ri} className={styles.skeletonDayRow}>
-          {Array.from({ length: 7 }, (_, ci) => (
-            <div key={ci} className={styles.skeletonDayCell}>
-              <div className={`${styles.skeletonBar} ${styles.skeletonPulse}`} />
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
+    <span className={styles.availabilitySpinnerFig} data-node-id="387:4274" aria-hidden>
+      <svg viewBox="0 0 14 14" width={14} height={14} fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle
+          cx="7"
+          cy="7"
+          r="5.5"
+          stroke="#f3ab1f"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray="9 26"
+          transform="rotate(-90 7 7)"
+        />
+      </svg>
+    </span>
   );
 }
 
@@ -276,15 +286,21 @@ export function CheckInDatePicker({
 }: Props) {
   const checkInNightTipId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const staggerIntervalRef = useRef(0);
   const [viewYear, setViewYear] = useState(() =>
     clampViewMonth(selected.getFullYear(), selected.getMonth())[0],
   );
   const [viewMonth, setViewMonth] = useState(() =>
     clampViewMonth(selected.getFullYear(), selected.getMonth())[1],
   );
-  const [calendarReady, setCalendarReady] = useState(() => {
+  const [availabilityFetchDone, setAvailabilityFetchDone] = useState(() => {
     const [y, m] = clampViewMonth(selected.getFullYear(), selected.getMonth());
     return loadedCalendarMonths.has(monthCacheKey(y, m));
+  });
+  /** Resolved cells increase left-to-right, top-to-bottom (0 … GRID_DAY_COUNT). */
+  const [revealedDayCount, setRevealedDayCount] = useState(() => {
+    const [y, m] = clampViewMonth(selected.getFullYear(), selected.getMonth());
+    return loadedCalendarMonths.has(monthCacheKey(y, m)) ? GRID_DAY_COUNT : 0;
   });
   /** Hover overrides pale band; cleared on leave so idle state can use committed checkout. */
   const [checkoutHoverDate, setCheckoutHoverDate] = useState<Date | null>(null);
@@ -315,17 +331,18 @@ export function CheckInDatePicker({
     return startOfDay(selected) > startOfDay(checkInDate) ? selected : null;
   }
 
-  /**
-   * Orange “departure” ring: live hover, else committed checkout — so reopening shows the selected
-   * check-out (e.g. Apr 25) with hover styling until the pointer moves over another date.
-   */
+  /** Orange “departure” ring only while the pointer is over a day — reopening idle has no faux hover. */
   function effectiveCheckoutHoverCell(): Date | null {
     if (mode !== "checkOut") return null;
-    if (checkoutHoverDate != null) return checkoutHoverDate;
-    if (checkInDate && startOfDay(selected) > startOfDay(checkInDate)) {
-      return selected;
-    }
-    return null;
+    return checkoutHoverDate;
+  }
+
+  /** Committed check-out accent — off while the pointer is on a different day; nav/header alone do not suppress it. */
+  function shouldShowCommittedCheckoutHighlight(): boolean {
+    if (mode !== "checkOut" || !checkInDate) return false;
+    if (!(startOfDay(selected) > startOfDay(checkInDate))) return false;
+    if (checkoutHoverDate != null && !sameDay(checkoutHoverDate, selected)) return false;
+    return true;
   }
 
   /** Nights strictly between check-in night and stay end (hover preview or committed checkout). */
@@ -380,19 +397,57 @@ export function CheckInDatePicker({
     return isInventoryBlockedCheckOutDay(d);
   }
 
-  useEffect(() => {
+  /**
+   * Sync availability/stagger state with the visible month before paint.
+   * Otherwise a month change reuses the previous month’s `availabilityFetchDone` / `revealedDayCount`
+   * for one frame and sold-out cells render at full strength with no stagger.
+   */
+  useLayoutEffect(() => {
     const key = monthCacheKey(viewYear, viewMonth);
     if (loadedCalendarMonths.has(key)) {
-      setCalendarReady(true);
+      setAvailabilityFetchDone(true);
+      setRevealedDayCount(GRID_DAY_COUNT);
+    } else {
+      setAvailabilityFetchDone(false);
+      setRevealedDayCount(0);
+    }
+  }, [viewYear, viewMonth]);
+
+  useEffect(() => {
+    const key = monthCacheKey(viewYear, viewMonth);
+
+    if (loadedCalendarMonths.has(key)) {
       return;
     }
 
-    setCalendarReady(false);
-    const id = window.setTimeout(() => {
+    const fetchId = window.setTimeout(() => {
       loadedCalendarMonths.add(key);
-      setCalendarReady(true);
-    }, SKELETON_LOAD_MS);
-    return () => window.clearTimeout(id);
+      setAvailabilityFetchDone(true);
+      setRevealedDayCount(1);
+
+      if (staggerIntervalRef.current) {
+        window.clearInterval(staggerIntervalRef.current);
+      }
+
+      staggerIntervalRef.current = window.setInterval(() => {
+        setRevealedDayCount((prev) => {
+          const next = Math.min(prev + 1, GRID_DAY_COUNT);
+          if (next >= GRID_DAY_COUNT) {
+            window.clearInterval(staggerIntervalRef.current);
+            staggerIntervalRef.current = 0;
+          }
+          return next;
+        });
+      }, STAGGER_DAY_MS);
+    }, AVAILABILITY_LOAD_MS);
+
+    return () => {
+      window.clearTimeout(fetchId);
+      if (staggerIntervalRef.current !== 0) {
+        window.clearInterval(staggerIntervalRef.current);
+        staggerIntervalRef.current = 0;
+      }
+    };
   }, [viewYear, viewMonth]);
 
   useEffect(() => {
@@ -430,9 +485,50 @@ export function CheckInDatePicker({
   }
 
   /** Figma `140:365` — same cell styles for padding days (e.g. next month) as in-month; no separate “adjacent” look. */
-  function cellClass(date: Date): string {
+  function cellClass(date: Date, flatIndex: number): string {
     const interactionBlocked = isInteractionBlockedInPicker(date);
     const isSelected = sameDay(date, selected);
+
+    /* Until this slot staggers in — calendar-past muted; remaining days preview as plain available. */
+    const stillPreviewSlot = !availabilityFetchDone || flatIndex >= revealedDayCount;
+
+    /* Figma `352:4038` — availability loading/stagger preview: committed check-out selected before generic sold-out so orange+strike shows when applicable. */
+    if (stillPreviewSlot) {
+      if (isPastDate(date)) {
+        return styles.cellPast;
+      }
+      /* Match post-stagger: Apr 11 demo selection is orange + white strike — not plain cellSelected during stagger. */
+      if (mode === "checkIn" && isDemoApril11CheckInDay(date) && isSelected) {
+        return styles.cellUnavailableSoldAccent;
+      }
+      if (isSelected && mode !== "checkOut") {
+        return styles.cellSelected;
+      }
+      if (
+        mode === "checkOut" &&
+        checkInDate &&
+        isInventoryUnavailableLook(date)
+      ) {
+        if (isInStaySpanPreviewBand(date)) {
+          return styles.cellStayRangeUnavailable;
+        }
+        if (sameDay(date, selected)) {
+          return shouldShowCommittedCheckoutHighlight()
+            ? styles.cellUnavailableSoldAccent
+            : styles.cellUnavailable;
+        }
+        return styles.cellUnavailable;
+      }
+      if (
+        mode === "checkOut" &&
+        sameDay(date, selected) &&
+        checkInDate &&
+        startOfDay(selected) > startOfDay(checkInDate)
+      ) {
+        return shouldShowCommittedCheckoutHighlight() ? styles.cellSelected : styles.cellAvailable;
+      }
+      return styles.cellAvailable;
+    }
 
     /* Apr 11 selected: Figma `167:3146` orange+white strike */
     if (mode === "checkIn" && isDemoApril11CheckInDay(date) && isSelected) {
@@ -459,7 +555,7 @@ export function CheckInDatePicker({
       return styles.cellUnavailable;
     }
 
-    /* Check-out: orange departure ring — pointer hover overrides; idle uses committed checkout (stays on reopen). */
+    /* Check-out: orange departure ring — only the cell under the pointer (`checkoutHoverDate`). */
     if (mode === "checkOut" && !interactionBlocked) {
       const ringDate = effectiveCheckoutHoverCell();
       if (ringDate != null && sameDay(date, ringDate)) {
@@ -467,6 +563,18 @@ export function CheckInDatePicker({
           ? styles.cellUnavailableSoldAccent
           : styles.cellSelected;
       }
+    }
+
+    if (
+      mode === "checkOut" &&
+      isSelected &&
+      checkInDate &&
+      startOfDay(selected) > startOfDay(checkInDate) &&
+      shouldShowCommittedCheckoutHighlight()
+    ) {
+      return isInventoryUnavailableLook(date)
+        ? styles.cellUnavailableSoldAccent
+        : styles.cellSelected;
     }
 
     if (isSelected && mode !== "checkOut") {
@@ -513,15 +621,18 @@ export function CheckInDatePicker({
   const dialogLabel = mode === "checkOut" ? "Check-out dates" : "Check-in dates";
   const headerTitle = mode === "checkOut" ? "Check-out dates" : "Check-in dates";
   const loadedNodeId = mode === "checkOut" ? "22:1100" : "15:8333";
+  const availabilityLoadingNodeId = "352:4038";
+  const calendarInteractive =
+    availabilityFetchDone && revealedDayCount >= GRID_DAY_COUNT;
 
   return (
     <div
       ref={rootRef}
       className={styles.root}
-      data-node-id={calendarReady ? loadedNodeId : "14:6829"}
+      data-node-id={calendarInteractive ? loadedNodeId : availabilityLoadingNodeId}
       role="dialog"
       aria-label={dialogLabel}
-      aria-busy={!calendarReady}
+      aria-busy={!calendarInteractive}
     >
       <div className={styles.headerTop}>
         <p className={styles.title}>{headerTitle}</p>
@@ -564,42 +675,91 @@ export function CheckInDatePicker({
         ))}
       </div>
 
-      {calendarReady ? (
-        <div
-          className={styles.grid}
-          onPointerOver={handleGridPointerOver}
-          onMouseLeave={() => {
-            if (mode === "checkOut") setCheckoutHoverDate(null);
-            if (mode === "checkIn") setCheckInHoverDate(null);
-          }}
-          onPointerLeave={() => {
-            if (mode === "checkOut") setCheckoutHoverDate(null);
-            if (mode === "checkIn") setCheckInHoverDate(null);
-          }}
-        >
-          {rows.map((row, ri) => (
-            <div key={ri} className={styles.dayRow}>
-              {row.map((date, ci) => {
-                const dayKey = calendarDayDataKey(date);
-                const interactionBlocked = isInteractionBlockedInPicker(date);
-                const isSelected = sameDay(date, selected);
-                const isCheckInNight = isCheckInNightInCheckoutPicker(date);
-                const cls = cellClass(date);
-                const label = date.getDate();
-                const isRefToday = isReferenceToday(date);
+      <div
+        className={`${styles.grid} ${!calendarInteractive ? styles.gridAvailabilityLoading : ""}`}
+        onPointerOver={calendarInteractive ? handleGridPointerOver : undefined}
+        onMouseLeave={
+          calendarInteractive
+            ? () => {
+                setCheckoutHoverDate(null);
+                setCheckInHoverDate(null);
+              }
+            : undefined
+        }
+        onPointerLeave={
+          calendarInteractive
+            ? () => {
+                setCheckoutHoverDate(null);
+                setCheckInHoverDate(null);
+              }
+            : undefined
+        }
+      >
+        {rows.map((row, ri) => (
+          <div key={ri} className={styles.dayRow}>
+            {row.map((date, ci) => {
+              const flatIndex = ri * 7 + ci;
+              const dayKey = calendarDayDataKey(date);
+              const interactionBlocked = calendarInteractive && isInteractionBlockedInPicker(date);
+              const isSelected = sameDay(date, selected);
+              const isCheckInNight =
+                calendarInteractive && isCheckInNightInCheckoutPicker(date);
+              const cls = cellClass(date, flatIndex);
 
-                /* Past / structural invalid — not choosable; inventory sold-out still uses `<button>` below */
-                if (interactionBlocked && !isCheckInNight) {
-                  const isPast = isPastDate(date);
-                  return (
+              const label = date.getDate();
+              const isRefToday = isReferenceToday(date);
+
+              /* Availability stagger & initial fetch: plain cells until interactive. */
+              if (!calendarInteractive) {
+                return (
+                  <div
+                    key={`${ri}-${ci}`}
+                    className={`${styles.cell} ${cls}`}
+                    data-calendar-day={dayKey}
+                    aria-hidden
+                  >
+                    {label}
+                  </div>
+                );
+              }
+
+              /* Past / structural invalid — not choosable; inventory sold-out still uses `<button>` below */
+              if (interactionBlocked && !isCheckInNight) {
+                const isPast = isPastDate(date);
+                return (
+                  <div
+                    key={`${ri}-${ci}`}
+                    role="button"
+                    tabIndex={-1}
+                    className={`${styles.cell} ${cls}`}
+                    data-calendar-day={dayKey}
+                    aria-disabled="true"
+                    aria-label={isPast ? `${label} — past date` : `${label} — unavailable`}
+                    onClick={(e) => e.preventDefault()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") e.preventDefault();
+                    }}
+                  >
+                    {label}
+                  </div>
+                );
+              }
+
+              if (isCheckInNight && !isSelected) {
+                return (
+                  <div
+                    key={`${ri}-${ci}`}
+                    className={styles.checkInTooltipHost}
+                    data-calendar-day={dayKey}
+                  >
                     <div
-                      key={`${ri}-${ci}`}
                       role="button"
                       tabIndex={-1}
                       className={`${styles.cell} ${cls}`}
                       data-calendar-day={dayKey}
                       aria-disabled="true"
-                      aria-label={isPast ? `${label} — past date` : `${label} — unavailable`}
+                      aria-label={`${label} — check-in`}
+                      aria-describedby={checkInNightTipId}
                       onClick={(e) => e.preventDefault()}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") e.preventDefault();
@@ -607,78 +767,68 @@ export function CheckInDatePicker({
                     >
                       {label}
                     </div>
-                  );
-                }
-
-                if (isCheckInNight && !isSelected) {
-                  return (
                     <div
-                      key={`${ri}-${ci}`}
-                      className={styles.checkInTooltipHost}
-                      data-calendar-day={dayKey}
+                      id={checkInNightTipId}
+                      className={styles.checkInTooltip}
+                      role="tooltip"
+                      data-node-id="140:923"
                     >
-                      <div
-                        role="button"
-                        tabIndex={-1}
-                        className={`${styles.cell} ${cls}`}
-                        data-calendar-day={dayKey}
-                        aria-disabled="true"
-                        aria-label={`${label} — check-in`}
-                        aria-describedby={checkInNightTipId}
-                        onClick={(e) => e.preventDefault()}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") e.preventDefault();
-                        }}
-                      >
-                        {label}
+                      <div className={styles.checkInTooltipBubble}>
+                        <span className={styles.checkInTooltipText}>Check-In</span>
                       </div>
-                      <div
-                        id={checkInNightTipId}
-                        className={styles.checkInTooltip}
-                        role="tooltip"
-                        data-node-id="140:923"
-                      >
-                        <div className={styles.checkInTooltipBubble}>
-                          <span className={styles.checkInTooltipText}>Check-In</span>
-                        </div>
-                        <div className={styles.checkInTooltipArrow} aria-hidden />
-                      </div>
+                      <div className={styles.checkInTooltipArrow} aria-hidden />
                     </div>
-                  );
-                }
-
-                const ariaLabel =
-                  `${label}${isRefToday ? ", today" : ""}${isSelected ? ", selected" : ""}`;
-
-                return (
-                  <button
-                    key={`${ri}-${ci}`}
-                    type="button"
-                    className={`${styles.cell} ${cls}`}
-                    data-calendar-day={dayKey}
-                    onClick={() => {
-                      if (isInteractionBlockedInPicker(date)) return;
-                      onSelect(new Date(date));
-                    }}
-                    aria-label={ariaLabel}
-                    aria-pressed={isSelected}
-                  >
-                    {label}
-                  </button>
+                  </div>
                 );
-              })}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <SkeletonDateGrid />
-      )}
+              }
 
-      <div className={styles.availabilityFooter} data-node-id="47:875">
-        <div className={styles.availabilityFooterInner}>
-          <p className={styles.availabilityNote} data-node-id="47:883">
-            {formatAvailabilityNote(availabilityRooms, availabilityAdults, availabilityKids)}
-          </p>
+              const ariaLabel =
+                `${label}${isRefToday ? ", today" : ""}${isSelected ? ", selected" : ""}`;
+
+              return (
+                <button
+                  key={`${ri}-${ci}`}
+                  type="button"
+                  className={`${styles.cell} ${cls}`}
+                  data-calendar-day={dayKey}
+                  onClick={() => {
+                    if (isInteractionBlockedInPicker(date)) return;
+                    onSelect(new Date(date));
+                  }}
+                  aria-label={ariaLabel}
+                  aria-pressed={isSelected}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      <div
+        className={styles.availabilityFooter}
+        data-node-id="47:875"
+        data-availability-state={calendarInteractive ? "ready" : "loading"}
+      >
+        <div
+          className={`${styles.availabilityFooterInner} ${!calendarInteractive ? styles.availabilityFooterInnerLoading : ""}`}
+        >
+          {calendarInteractive ? (
+            <p className={styles.availabilityNote} data-node-id="47:883">
+              {formatAvailabilityNote(availabilityRooms, availabilityAdults, availabilityKids)}
+            </p>
+          ) : (
+            <p
+              className={styles.availabilityLoadingFooter}
+              data-node-id="352:4112"
+              role="status"
+              aria-live="polite"
+            >
+              <AvailabilityLoadingSpinnerIcon />
+              <span data-node-id="352:4113">Loading Availability...</span>
+            </p>
+          )}
         </div>
       </div>
     </div>
