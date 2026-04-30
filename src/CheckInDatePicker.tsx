@@ -197,7 +197,7 @@ function formatAvailabilityNote(rooms: number, adults: number, kids: number): st
 }
 
 /** Simulated latency before staggered reveal begins (prior skeleton duration). */
-const AVAILABILITY_LOAD_MS = 1500;
+const AVAILABILITY_LOAD_MS = 5000;
 
 /** Cells in grid (Figma — 5×7). Each slot resolves sequentially after availability fetch. */
 const GRID_DAY_COUNT = 35;
@@ -716,8 +716,20 @@ export function CheckInDatePicker({
               const label = date.getDate();
               const isRefToday = isReferenceToday(date);
 
-              /* Availability stagger & initial fetch: plain cells until interactive. */
+              /* Availability stagger & initial fetch: skeleton pulse until fetch, then previews until interactive. */
               if (!calendarInteractive) {
+                if (!availabilityFetchDone) {
+                  return (
+                    <div
+                      key={`${ri}-${ci}`}
+                      className={`${styles.cell} ${styles.cellDateSkeletonWrap}`}
+                      data-calendar-day={dayKey}
+                      aria-hidden
+                    >
+                      <span className={styles.cellSkeletonPulse} aria-hidden />
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={`${ri}-${ci}`}
