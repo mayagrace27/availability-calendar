@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import {
   CheckInDatePicker,
   formatBookingDate,
+  resolveCheckoutForCheckIn,
   startOfDay,
 } from "./CheckInDatePicker";
 import styles from "./NoHotelsPage.module.css";
@@ -155,7 +156,7 @@ function SearchWidget({
             selected={checkIn}
             onSelect={(d) => {
               setCheckIn(d);
-              setCheckOut(addDays(d, 1));
+              setCheckOut((prev) => resolveCheckoutForCheckIn(d, prev));
               setCheckInOpen(false);
               setCheckOutOpen(true);
             }}

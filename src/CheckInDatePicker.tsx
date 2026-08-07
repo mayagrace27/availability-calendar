@@ -95,6 +95,80 @@ function isInventoryBlockedCheckOutDay(d: Date): boolean {
   return isSimulatedInventoryNightAfterApril(y, m, dom, "checkOut");
 }
 
+/**
+ * First sold-out check-in night on or after the night following check-in.
+ * Check-in / check-out inventory is staggered by one calendar day in the demo
+ * (e.g. check-in blocks Apr 23–24 → check-out blocks Apr 24–25), but the stay
+ * window is driven by check-in nights: you may depart on the morning of a
+ * blocked night, since that night is not occupied.
+ *
+ * Example: check-in Apr 22, blocked night Apr 23 → last check-out is Apr 23.
+ * Example: check-in Apr 19, blocked night Apr 23 → last check-out is Apr 23;
+ *          Apr 24+ stay marked out on the check-out calendar.
+ */
+function getFirstBlockedNightAfterCheckIn(checkIn: Date): Date | null {
+  /* Start at the first night after check-in that could end a min stay (check-out day). */
+  let d = nextCalendarDay(startOfDay(checkIn));
+  for (let i = 0; i < 366; i++) {
+    if (isInventoryBlockedCheckInNight(d)) {
+      return startOfDay(d);
+    }
+    d = nextCalendarDay(d);
+  }
+  return null;
+}
+
+/**
+ * Last selectable check-out given check-in: the first unavailable check-in night
+ * after arrival (depart that morning without staying the blocked night).
+ * `null` means no inventory gap within the scan window.
+ */
+export function getMaxCheckoutDate(checkIn: Date): Date | null {
+  return getFirstBlockedNightAfterCheckIn(checkIn);
+}
+
+/**
+ * True when `checkout` is a valid departure for this check-in:
+ * after check-in (min 1 night), not past the contiguous inventory gap,
+ * and not a per-day check-out inventory block.
+ */
+export function isCheckoutDateAllowed(checkIn: Date, checkout: Date): boolean {
+  const cIn = startOfDay(checkIn);
+  const cOut = startOfDay(checkout);
+  if (cOut <= cIn) return false;
+  if (isPastDate(cOut)) return false;
+  const max = getMaxCheckoutDate(cIn);
+  if (max && cOut > max) return false;
+  if (isInventoryBlockedCheckOutDay(cOut)) return false;
+  return true;
+}
+
+/**
+ * Pick a check-out after check-in changes.
+ * Keeps the previous departure when it is still allowed; otherwise prefers check-in + 1 night,
+ * then the earliest later allowed day; falls back to check-in + 1 if no stay fits the inventory gap.
+ */
+export function resolveCheckoutForCheckIn(checkIn: Date, previousCheckout?: Date): Date {
+  const cIn = startOfDay(checkIn);
+  if (previousCheckout && isCheckoutDateAllowed(cIn, previousCheckout)) {
+    return startOfDay(previousCheckout);
+  }
+  const minStay = nextCalendarDay(cIn);
+  if (isCheckoutDateAllowed(cIn, minStay)) {
+    return minStay;
+  }
+  let d = nextCalendarDay(minStay);
+  for (let i = 0; i < 366; i++) {
+    if (isCheckoutDateAllowed(cIn, d)) {
+      return startOfDay(d);
+    }
+    const max = getMaxCheckoutDate(cIn);
+    if (max && startOfDay(d) >= max) break;
+    d = nextCalendarDay(d);
+  }
+  return minStay;
+}
+
 /** Future inventory for “can I check in on this night?” (shared by `isDateUnavailable`). */
 function isFutureInventoryBlocked(d: Date): boolean {
   return isInventoryBlockedCheckInNight(d);
@@ -304,8 +378,6 @@ export function CheckInDatePicker({
   });
   /** Hover overrides pale band; cleared on leave so idle state can use committed checkout. */
   const [checkoutHoverDate, setCheckoutHoverDate] = useState<Date | null>(null);
-  /** Check-in: orange + white strike on hover for inventory / demo sold-out cells (parity with check-out picker). */
-  const [checkInHoverDate, setCheckInHoverDate] = useState<Date | null>(null);
 
   const canGoPrev =
     viewYear > EARLIEST_VIEW_YEAR ||
@@ -360,7 +432,15 @@ export function CheckInDatePicker({
     setCheckoutHoverDate(new Date(d));
   }
 
-  /** Grid-level so hover works on unavailable / `::after` and WebKit. See `data-calendar-day`. */
+  /** Strikethrough / non-bookable days should not drive hover preview or accent. */
+  function shouldIgnoreDayHover(d: Date): boolean {
+    if (isInteractionBlockedInPicker(d)) return true;
+    if (isInventoryUnavailableLook(d)) return true;
+    if (mode === "checkIn" && isDemoApril11CheckInDay(d)) return true;
+    return false;
+  }
+
+  /** Grid-level so hover works across cell chrome / WebKit. See `data-calendar-day`. */
   function handleGridPointerOver(e: React.PointerEvent<HTMLDivElement>) {
     const raw = e.target;
     const el =
@@ -371,30 +451,43 @@ export function CheckInDatePicker({
     const key = mark.getAttribute("data-calendar-day");
     if (!key) return;
     const d = dateFromCalendarDayDataKey(key);
-    if (mode === "checkOut") {
-      handleCheckoutHover(d);
+    if (shouldIgnoreDayHover(d)) {
+      setCheckoutHoverDate(null);
       return;
     }
-    if (mode === "checkIn") {
-      setCheckInHoverDate(new Date(d));
+    if (mode === "checkOut") {
+      handleCheckoutHover(d);
     }
   }
 
-  /** Past or structurally invalid date (not inventory). Sold-out inventory days stay choosable — Figma `167:3146`. */
+  /**
+   * Past or structurally invalid date.
+   * Check-in: sold-out inventory days stay choosable — Figma `167:3146`.
+   * Check-out: blocked after check-in, past the contiguous inventory window, or per-day checkout blocks.
+   */
   function isInteractionBlockedInPicker(d: Date): boolean {
     if (isPastDate(d)) return true;
-    if (mode === "checkOut" && checkInDate && startOfDay(d) <= startOfDay(checkInDate)) {
-      return true;
+    if (mode === "checkOut" && checkInDate) {
+      if (startOfDay(d) <= startOfDay(checkInDate)) return true;
+      if (!isCheckoutDateAllowed(checkInDate, d)) return true;
     }
     return false;
   }
 
-  /** Inventory sold-out strike styling (check-in nights / check-out days); selection still allowed. */
+  /**
+   * Sold-out strike styling.
+   * Check-in: inventory nights (selection still allowed).
+   * Check-out: per-day checkout blocks and every day after the contiguous window.
+   */
   function isInventoryUnavailableLook(d: Date): boolean {
     if (mode === "checkIn") {
       return isInventoryBlockedCheckInNight(d);
     }
-    return isInventoryBlockedCheckOutDay(d);
+    if (!checkInDate) return isInventoryBlockedCheckOutDay(d);
+    if (startOfDay(d) <= startOfDay(checkInDate)) return false;
+    if (isInventoryBlockedCheckOutDay(d)) return true;
+    const max = getMaxCheckoutDate(checkInDate);
+    return Boolean(max && startOfDay(d) > max);
   }
 
   /**
@@ -452,7 +545,6 @@ export function CheckInDatePicker({
 
   useEffect(() => {
     setCheckoutHoverDate(null);
-    setCheckInHoverDate(null);
   }, [viewYear, viewMonth]);
 
   useEffect(() => {
@@ -535,33 +627,16 @@ export function CheckInDatePicker({
       return styles.cellUnavailableSoldAccent;
     }
 
-    /* Check-in: hover on sold-out / inventory-unavailable — same accent as check-out picker (`167:3390`) */
-    if (
-      mode === "checkIn" &&
-      !interactionBlocked &&
-      checkInHoverDate != null &&
-      sameDay(date, checkInHoverDate)
-    ) {
-      if (isInventoryUnavailableLook(date)) {
-        return styles.cellUnavailableSoldAccent;
-      }
-      if (isDemoApril11CheckInDay(date)) {
-        return styles.cellUnavailableSoldAccent;
-      }
-    }
-
-    /* Apr 11 not selected: gray strike until hover (handled above) */
+    /* Apr 11 not selected: gray strike (no hover accent) */
     if (mode === "checkIn" && isDemoApril11CheckInDay(date)) {
       return styles.cellUnavailable;
     }
 
-    /* Check-out: orange departure ring — only the cell under the pointer (`checkoutHoverDate`). */
+    /* Check-out: orange departure ring — only over bookable days (`checkoutHoverDate`). */
     if (mode === "checkOut" && !interactionBlocked) {
       const ringDate = effectiveCheckoutHoverCell();
       if (ringDate != null && sameDay(date, ringDate)) {
-        return isInventoryUnavailableLook(date)
-          ? styles.cellUnavailableSoldAccent
-          : styles.cellSelected;
+        return styles.cellSelected;
       }
     }
 
@@ -689,7 +764,6 @@ export function CheckInDatePicker({
           calendarInteractive
             ? () => {
                 setCheckoutHoverDate(null);
-                setCheckInHoverDate(null);
               }
             : undefined
         }
@@ -697,7 +771,6 @@ export function CheckInDatePicker({
           calendarInteractive
             ? () => {
                 setCheckoutHoverDate(null);
-                setCheckInHoverDate(null);
               }
             : undefined
         }
@@ -764,7 +837,8 @@ export function CheckInDatePicker({
                 );
               }
 
-              if (isCheckInNight && !isSelected) {
+              /* Check-in night is never a departure — even if it was somehow the committed selection. */
+              if (isCheckInNight) {
                 return (
                   <div
                     key={`${ri}-${ci}`}
