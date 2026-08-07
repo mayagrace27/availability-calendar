@@ -337,12 +337,12 @@
   cursor: not-allowed;
 }
 
-/* Figma `140:365` / cells `140:412`–`140:413` — #74747c + strike; selections allowed for inventory demos */
+/* Figma `140:365` / cells `140:412`–`140:413` — #74747c + strike; no hover treatment */
 .cellUnavailable {
   background: #fff;
   color: #74747c;
   text-decoration: none;
-  cursor: pointer;
+  cursor: default;
 }
 
 .cellUnavailable::after {
@@ -358,26 +358,12 @@
   pointer-events: none;
 }
 
-.cellUnavailable:hover {
-  background: #fff;
-  color: #74747c;
-}
-
-.cellUnavailable:hover::after {
-  background: #74747c;
-}
-
-/* Figma `167:3146` / `167:3390` (#25) — #f3ab1f + white strike while hovered/selected; still clickable */
+/* Figma `167:3146` — #f3ab1f + white strike when selected; not used as a hover state */
 .cellUnavailableSoldAccent {
   background: #f3ab1f;
   color: #fff;
   text-decoration: none;
-  cursor: pointer;
-}
-
-.cellUnavailableSoldAccent:hover {
-  background: #f3ab1f;
-  color: #fff;
+  cursor: default;
 }
 
 .cellUnavailableSoldAccent::after {
@@ -421,12 +407,12 @@
   color: #fff;
 }
 
-/* Inventory inside stay band (#24) — Figma `167:3390`: pale bg + gray strike persists on hover */
+/* Inventory inside stay band (#24) — Figma `167:3390`: pale bg + gray strike; no hover accent */
 .cellStayRangeUnavailable {
   background: #fef7e1;
   color: #606068;
   text-decoration: none;
-  cursor: pointer;
+  cursor: default;
 }
 
 .cellStayRangeUnavailable::after {
@@ -440,15 +426,6 @@
   z-index: 1;
   background: #74747c;
   pointer-events: none;
-}
-
-.cellStayRangeUnavailable:hover {
-  background: #fef7e1;
-  color: #606068;
-}
-
-.cellStayRangeUnavailable:hover::after {
-  background: #74747c;
 }
 
 /* Figma `140:923` — “Check-In” hover on check-in night (check-out calendar) */
