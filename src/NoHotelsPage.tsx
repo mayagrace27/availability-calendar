@@ -156,7 +156,7 @@ function SearchWidget({
             selected={checkIn}
             onSelect={(d) => {
               setCheckIn(d);
-              setCheckOut((prev) => resolveCheckoutForCheckIn(d, prev));
+              setCheckOut(resolveCheckoutForCheckIn(d));
               setCheckInOpen(false);
               setCheckOutOpen(true);
             }}

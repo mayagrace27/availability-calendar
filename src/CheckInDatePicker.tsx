@@ -73,13 +73,18 @@ function isSimulatedInventoryNightAfterApril(
   return (x >>> 0) % 100 < 10;
 }
 
-/** Nights you cannot start a stay on (check-in calendar). Fixed Apr 23–24 + simulated later months. Apr 11 uses visual-only strike when not selected. */
+/**
+ * Nights that are sold out. Demo Apr 11 and Apr 23–24 + simulated later months.
+ * Apr 11 stays choosable as a check-in (sold-out styling, Figma `167:3146`) but counts
+ * as occupied here so it closes the stay window for earlier arrivals.
+ */
 function isInventoryBlockedCheckInNight(d: Date): boolean {
   const day = startOfDay(d);
   if (day < startOfDay(REFERENCE_TODAY)) return false;
   const y = day.getFullYear();
   const m = day.getMonth();
   const dom = day.getDate();
+  if (isDemoApril11CheckInDay(day)) return true;
   if (y === 2026 && m === 3 && (dom === 23 || dom === 24)) return true;
   return isSimulatedInventoryNightAfterApril(y, m, dom, "checkIn");
 }
@@ -144,15 +149,12 @@ export function isCheckoutDateAllowed(checkIn: Date, checkout: Date): boolean {
 }
 
 /**
- * Pick a check-out after check-in changes.
- * Keeps the previous departure when it is still allowed; otherwise prefers check-in + 1 night,
- * then the earliest later allowed day; falls back to check-in + 1 if no stay fits the inventory gap.
+ * Pick a check-out after check-in changes — always a one-night stay when possible,
+ * so the departure follows the new arrival instead of keeping the prior date.
+ * Falls back to the earliest later allowed day when the next night is blocked.
  */
-export function resolveCheckoutForCheckIn(checkIn: Date, previousCheckout?: Date): Date {
+export function resolveCheckoutForCheckIn(checkIn: Date): Date {
   const cIn = startOfDay(checkIn);
-  if (previousCheckout && isCheckoutDateAllowed(cIn, previousCheckout)) {
-    return startOfDay(previousCheckout);
-  }
   const minStay = nextCalendarDay(cIn);
   if (isCheckoutDateAllowed(cIn, minStay)) {
     return minStay;
